@@ -24,11 +24,8 @@ import {
 } from './data/budgetData';
 
 export default function App() {
-  // Navigation tabs: 'budget' | 'evidence' | 'brief'
   const [currentTab, setCurrentTab] = useState('budget');
-
-  // Budget Sub-toggle: 'revenue' | 'expenditure' (they never appear simultaneously)
-  const [budgetMode, setBudgetMode] = useState('expenditure'); // default to expenditure as most people look at spend first
+  const [budgetMode, setBudgetMode] = useState('expenditure');
 
   // Exact 5 Group Members for THE MONETS
   const [groupMembers] = useState([
@@ -39,7 +36,10 @@ export default function App() {
     { name: 'Tugumisirize Bruce', role: 'Consultation & Stakeholder Lead' },
   ]);
 
-  // Citizen Responses state (stored in localStorage so reactions never disappear across refreshes!)
+  // Admin access state (activated via secret click on Kyeyune Neithen in Members modal)
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Citizen Responses state (starts completely clean & empty, persists in LocalStorage)
   const [responses, setResponses] = useState(() => {
     try {
       const saved = localStorage.getItem('THE_MONETS_BUDGET_RESPONSES');
@@ -76,6 +76,10 @@ export default function App() {
     setResponses((prev) => [newResponse, ...prev]);
   };
 
+  const handleDeleteResponse = (id) => {
+    setResponses((prev) => prev.filter(r => r.id !== id));
+  };
+
   // Reactions count by target metric ID
   const metricReactionsCount = responses.reduce((acc, r) => {
     if (r.targetMetricId) {
@@ -104,6 +108,8 @@ export default function App() {
         setCurrentTab={setCurrentTab}
         groupMembers={groupMembers}
         totalResponsesCount={responses.length}
+        isAdmin={isAdmin}
+        setIsAdmin={setIsAdmin}
       />
 
       {/* Main Container */}
@@ -213,6 +219,8 @@ export default function App() {
           <EvidenceSection
             responses={responses}
             onOpenGeneralFeedback={handleOpenGeneralFeedback}
+            isAdmin={isAdmin}
+            onDeleteResponse={handleDeleteResponse}
           />
         )}
 

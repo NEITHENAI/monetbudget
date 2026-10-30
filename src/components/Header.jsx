@@ -5,17 +5,49 @@ import {
   Layers, 
   MessageSquareCheck, 
   ChevronDown, 
-  Landmark, 
-  ExternalLink 
+  Lock, 
+  Unlock, 
+  ShieldCheck, 
+  Check 
 } from 'lucide-react';
 
 export default function Header({ 
   currentTab, 
   setCurrentTab, 
   groupMembers, 
-  totalResponsesCount 
+  totalResponsesCount,
+  isAdmin,
+  setIsAdmin
 }) {
   const [showRoster, setShowRoster] = useState(false);
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+
+  const handleMemberClick = (member) => {
+    // Hidden Admin Trigger: If Kyeyune Neithen is clicked
+    if (member.name.toLowerCase().includes('kyeyune neithen')) {
+      if (isAdmin) {
+        // Toggle off if already admin
+        setIsAdmin(false);
+      } else {
+        setShowPasswordPrompt(true);
+        setPasswordError(false);
+        setPasswordInput('');
+      }
+    }
+  };
+
+  const handleVerifyPassword = (e) => {
+    e.preventDefault();
+    if (passwordInput === 'Kyeyuneneithen1$') {
+      setIsAdmin(true);
+      setShowPasswordPrompt(false);
+      setPasswordError(false);
+    } else {
+      setPasswordError(true);
+    }
+  };
 
   return (
     <header className="no-print bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -36,6 +68,11 @@ export default function Header({
                 <span className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded-full">
                   Uganda Budget FY 2027/28
                 </span>
+                {isAdmin && (
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3 text-amber-600" /> Admin Mode Active
+                  </span>
+                )}
               </div>
               <p className="text-[11px] text-gray-500 font-medium">
                 National Budget Design & Citizen Public Consultation Platform
@@ -113,36 +150,116 @@ export default function Header({
                 <p className="text-xs text-gray-500">Design the National Budget for Uganda FY 2027/2028</p>
               </div>
               <button
-                onClick={() => setShowRoster(false)}
+                onClick={() => {
+                  setShowRoster(false);
+                  setShowPasswordPrompt(false);
+                }}
                 className="text-gray-400 hover:text-gray-700 text-sm font-semibold p-1"
               >
                 ✕
               </button>
             </div>
 
-            <div className="divide-y divide-gray-100 mt-2">
-              {groupMembers.map((member, idx) => (
-                <div key={idx} className="py-2.5 flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <span className="w-6 h-6 rounded-full bg-gray-100 text-gray-700 text-xs font-bold flex items-center justify-center">
-                      {idx + 1}
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{member.name}</p>
-                      <p className="text-[11px] text-gray-400">{member.role || 'Budget Analyst'}</p>
-                    </div>
+            {/* Password Prompt Sub-view if Kyeyune Neithen was clicked */}
+            {showPasswordPrompt ? (
+              <form onSubmit={handleVerifyPassword} className="py-4 space-y-3">
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-1">
+                  <div className="flex items-center space-x-1.5 text-xs font-bold text-gray-900">
+                    <Lock className="w-3.5 h-3.5 text-gray-700" />
+                    <span>Admin Authentication Required</span>
                   </div>
-                  <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-medium border border-emerald-100">
-                    Verified
-                  </span>
+                  <p className="text-[11px] text-gray-600">
+                    Enter administrator credentials for <strong>Kyeyune Neithen</strong> to manage and moderate public responses.
+                  </p>
                 </div>
-              ))}
-            </div>
 
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 block mb-1">
+                    Password:
+                  </label>
+                  <input
+                    type="password"
+                    autoFocus
+                    required
+                    value={passwordInput}
+                    onChange={(e) => {
+                      setPasswordInput(e.target.value);
+                      setPasswordError(false);
+                    }}
+                    placeholder="Enter admin password..."
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+                  />
+                  {passwordError && (
+                    <p className="text-[11px] text-rose-600 font-medium mt-1">
+                      Incorrect password. Please verify and try again.
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-end space-x-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordPrompt(false)}
+                    className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs font-medium hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex items-center space-x-1 px-4 py-1.5 rounded-lg bg-gray-900 hover:bg-black text-white text-xs font-semibold"
+                  >
+                    <Unlock className="w-3 h-3" />
+                    <span>Unlock Admin</span>
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="divide-y divide-gray-100 mt-2">
+                {groupMembers.map((member, idx) => {
+                  const isNeithen = member.name.toLowerCase().includes('kyeyune neithen');
+
+                  return (
+                    <div 
+                      key={idx} 
+                      onClick={() => handleMemberClick(member)}
+                      className={`py-2.5 flex items-center justify-between transition-colors rounded-lg px-2 -mx-2 ${
+                        isNeithen ? 'cursor-pointer hover:bg-gray-50' : ''
+                      }`}
+                      title={isNeithen ? (isAdmin ? 'Admin enabled. Click to disable.' : 'Admin verification') : undefined}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <span className="w-6 h-6 rounded-full bg-gray-100 text-gray-700 text-xs font-bold flex items-center justify-center">
+                          {idx + 1}
+                        </span>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+                            <span>{member.name}</span>
+                            {isNeithen && isAdmin && (
+                              <span className="text-[10px] text-amber-600 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                                Admin
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-[11px] text-gray-400">{member.role || 'Budget Analyst'}</p>
+                        </div>
+                      </div>
+                      <span className="text-[11px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-medium border border-emerald-100">
+                        Verified
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Modal Footer */}
             <div className="mt-5 pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500">
-              <span>Department of Economics & Public Finance</span>
+              <span className="font-semibold text-gray-700">The Monets</span>
               <button
-                onClick={() => setShowRoster(false)}
+                onClick={() => {
+                  setShowRoster(false);
+                  setShowPasswordPrompt(false);
+                }}
                 className="px-4 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-semibold hover:bg-black transition-colors"
               >
                 Close

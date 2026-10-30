@@ -3,17 +3,22 @@ import {
   UsersRound, 
   MessageSquareCheck, 
   Download, 
-  Sparkles, 
   Search, 
-  Filter, 
+  Calendar, 
+  CheckCircle2, 
+  Trash2, 
+  ShieldAlert, 
   ThumbsUp, 
   ThumbsDown, 
-  Minus, 
-  CheckCircle2, 
-  Calendar 
+  Minus 
 } from 'lucide-react';
 
-export default function EvidenceSection({ responses, onOpenGeneralFeedback }) {
+export default function EvidenceSection({ 
+  responses, 
+  onOpenGeneralFeedback, 
+  isAdmin, 
+  onDeleteResponse 
+}) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStance, setFilterStance] = useState('all');
 
@@ -28,7 +33,6 @@ export default function EvidenceSection({ responses, onOpenGeneralFeedback }) {
     return matchesSearch && matchesFilter;
   });
 
-  // Calculate sentiment summary
   const stanceCounts = responses.reduce((acc, r) => {
     acc[r.stance] = (acc[r.stance] || 0) + 1;
     return acc;
@@ -65,7 +69,7 @@ export default function EvidenceSection({ responses, onOpenGeneralFeedback }) {
               Evidence of Responses Received (Public Consultation)
             </h3>
             <p className="text-xs text-gray-600 mt-1 max-w-3xl leading-relaxed">
-              In strict accordance with the semester instructions (<em>"Design a Web site on the Internet for your results and show evidence of the responses received"</em>), this ledger transparently displays citizen submissions, stakeholder sentiments, and policy recommendations for the FY 2027/2028 budget draft.
+              In strict accordance with the semester instructions (<em>"Design a Web site on the Internet for your results and show evidence of the responses received"</em>), this ledger transparently captures citizen submissions, stakeholder sentiments, and policy recommendations for the FY 2027/2028 budget draft.
             </p>
           </div>
 
@@ -79,7 +83,8 @@ export default function EvidenceSection({ responses, onOpenGeneralFeedback }) {
 
             <button
               onClick={downloadCSV}
-              className="flex items-center space-x-1.5 px-3.5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold transition-all border border-gray-200"
+              disabled={responses.length === 0}
+              className="flex items-center space-x-1.5 px-3.5 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold transition-all border border-gray-200 disabled:opacity-50"
               title="Download verified responses as CSV"
             >
               <Download className="w-3.5 h-3.5 text-gray-600" />
@@ -88,67 +93,99 @@ export default function EvidenceSection({ responses, onOpenGeneralFeedback }) {
           </div>
         </div>
 
+        {/* Admin Notification Banner */}
+        {isAdmin && (
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-amber-800">
+            <div className="flex items-center space-x-2">
+              <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>
+                <strong>Administrator Mode Active (Kyeyune Neithen):</strong> You have moderation permission to delete inappropriate or irrelevant public responses.
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Evidence Summary Badges */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-gray-100">
           <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
             <span className="text-[10px] text-gray-500 uppercase font-semibold block">Total Submissions</span>
             <span className="text-xl font-bold text-gray-900 font-mono">{responses.length}</span>
-            <span className="text-[10px] text-emerald-600 font-medium block mt-0.5">● Active Ledger</span>
+            <span className="text-[10px] text-emerald-600 font-medium block mt-0.5">
+              {responses.length > 0 ? '● Active Submissions' : 'Ready for Responses'}
+            </span>
           </div>
 
           <div className="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
             <span className="text-[10px] text-emerald-700 uppercase font-semibold block">Needs More Funds</span>
             <span className="text-xl font-bold text-emerald-800 font-mono">{stanceCounts['Needs Higher Allocation'] || 0}</span>
-            <span className="text-[10px] text-emerald-600 block mt-0.5">Health, PDM & Solar</span>
+            <span className="text-[10px] text-emerald-600 block mt-0.5">Recommended Increase</span>
           </div>
 
           <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-100">
             <span className="text-[10px] text-blue-700 uppercase font-semibold block">Endorsed / Just Right</span>
             <span className="text-xl font-bold text-blue-800 font-mono">{stanceCounts['Just Right'] || 0}</span>
-            <span className="text-[10px] text-blue-600 block mt-0.5">SGR, Roads & Oil Fund</span>
+            <span className="text-[10px] text-blue-600 block mt-0.5">Approved Allocation</span>
           </div>
 
           <div className="p-3 rounded-xl bg-rose-50/60 border border-rose-100">
             <span className="text-[10px] text-rose-700 uppercase font-semibold block">Advised Cut / Too High</span>
             <span className="text-xl font-bold text-rose-800 font-mono">{stanceCounts['Too High'] || 0}</span>
-            <span className="text-[10px] text-rose-600 block mt-0.5">Debt Service, Data Tax</span>
+            <span className="text-[10px] text-rose-600 block mt-0.5">Recommended Reductions</span>
           </div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by respondent, metric, or keyword..."
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-3 py-1.5 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900"
-          />
-        </div>
+      {responses.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by respondent, metric, or keyword..."
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-9 pr-3 py-1.5 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900"
+            />
+          </div>
 
-        <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
-          <span className="text-xs text-gray-500 font-medium">Filter Stance:</span>
-          <select
-            value={filterStance}
-            onChange={(e) => setFilterStance(e.target.value)}
-            className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs text-gray-700 font-medium focus:outline-none"
-          >
-            <option value="all">All Stances ({responses.length})</option>
-            <option value="Needs Higher Allocation">Needs Higher Allocation</option>
-            <option value="Just Right">Just Right / Endorsed</option>
-            <option value="Too High">Too High / Cut Advised</option>
-          </select>
+          <div className="flex items-center space-x-2 w-full sm:w-auto justify-end">
+            <span className="text-xs text-gray-500 font-medium">Filter Stance:</span>
+            <select
+              value={filterStance}
+              onChange={(e) => setFilterStance(e.target.value)}
+              className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs text-gray-700 font-medium focus:outline-none"
+            >
+              <option value="all">All Stances ({responses.length})</option>
+              <option value="Needs Higher Allocation">Needs Higher Allocation</option>
+              <option value="Just Right">Just Right / Endorsed</option>
+              <option value="Too High">Too High / Cut Advised</option>
+            </select>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* The Evidence Response Feed (Persistent and Never Disappears) */}
+      {/* The Evidence Response Feed */}
       <div className="space-y-3">
-        {filteredResponses.length === 0 ? (
+        {responses.length === 0 ? (
+          <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center space-y-3 shadow-xs">
+            <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto text-xl font-bold">
+              💬
+            </div>
+            <h4 className="text-base font-bold text-gray-900">No Responses Submitted Yet</h4>
+            <p className="text-xs text-gray-500 max-w-md mx-auto leading-relaxed">
+              The public consultation portal is clean and live. Click <strong>"+ Submit Your Reaction"</strong> or react to any budget metric on the main allocations page to record the first verified response!
+            </p>
+            <button
+              onClick={onOpenGeneralFeedback}
+              className="inline-flex items-center px-4 py-2 rounded-xl bg-gray-900 hover:bg-black text-white text-xs font-semibold shadow-xs transition-all"
+            >
+              + Submit First Response
+            </button>
+          </div>
+        ) : filteredResponses.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center text-gray-500 text-xs">
-            No responses match your search filter. Click "+ Submit Your Reaction" to add one!
+            No responses match your search or filter.
           </div>
         ) : (
           filteredResponses.map((item) => {
@@ -159,10 +196,9 @@ export default function EvidenceSection({ responses, onOpenGeneralFeedback }) {
             return (
               <div 
                 key={item.id}
-                className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-gray-300 transition-all flex flex-col sm:flex-row sm:items-start justify-between gap-4"
+                className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-gray-300 transition-all flex flex-col sm:flex-row sm:items-start justify-between gap-4 relative group"
               >
                 <div className="space-y-1.5 flex-1">
-                  {/* Top Metadata Header */}
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-bold text-gray-900">
                       {item.name}
@@ -176,7 +212,6 @@ export default function EvidenceSection({ responses, onOpenGeneralFeedback }) {
                     </span>
                   </div>
 
-                  {/* Comment Body */}
                   <p className="text-xs text-gray-700 leading-relaxed pt-1">
                     "{item.comment}"
                   </p>
@@ -193,8 +228,8 @@ export default function EvidenceSection({ responses, onOpenGeneralFeedback }) {
                   </div>
                 </div>
 
-                {/* Stance Pill */}
-                <div className="shrink-0 self-start sm:self-center">
+                {/* Stance Pill & Admin Delete Action */}
+                <div className="shrink-0 flex items-center space-x-2 self-start sm:self-center">
                   <span className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border ${
                     isIncrease 
                       ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
@@ -207,6 +242,16 @@ export default function EvidenceSection({ responses, onOpenGeneralFeedback }) {
                     {isCut && <ThumbsDown className="w-3.5 h-3.5 text-rose-600" />}
                     <span>{item.stance}</span>
                   </span>
+
+                  {isAdmin && (
+                    <button
+                      onClick={() => onDeleteResponse(item.id)}
+                      className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors"
+                      title="Admin: Delete Inappropriate Response"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             );

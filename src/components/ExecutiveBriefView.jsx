@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, ArrowLeft, Loader2, Check, BookOpen, Landmark, Users } from 'lucide-react';
+import { Download, ArrowLeft, Loader2, Check } from 'lucide-react';
 import html2pdf from 'html2pdf.js';
 import { 
   BUDGET_METADATA, 
@@ -101,7 +101,7 @@ export default function ExecutiveBriefView({
         {/* Header */}
         <header className="border-b-2 border-black pb-5 mb-5 text-center">
           <div className="text-[11px] tracking-widest uppercase font-bold text-gray-700 mb-1">
-            REPUBLIC OF UGANDA • MINISTRY OF FINANCE, PLANNING & ECONOMIC DEVELOPMENT
+            REPUBLIC OF UGANDA • NATIONAL BUDGET FRAMEWORK
           </div>
           <h1 className="text-xl font-bold uppercase tracking-tight my-2">
             NATIONAL BUDGET POLICY BRIEF & FISCAL FRAMEWORK (FY 2027/2028)
@@ -288,9 +288,9 @@ export default function ExecutiveBriefView({
             In compliance with the semester project guidelines, our public consultation portal gathered verified feedback across academia, business leaders, and farmers. Overall consensus highlights:
           </p>
           <ul className="list-disc list-inside text-xs space-y-1 text-gray-800">
-            <li><strong>83% of respondents</strong> advocated for increasing the primary health center drug budget.</li>
-            <li><strong>76% of manufacturers</strong> endorsed prioritizing the Standard Gauge Railway (SGR).</li>
-            <li><strong>88% of civil society</strong> recommended strictly auditing domestic debt servicing charges.</li>
+            <li><strong>Health Sector Funding:</strong> Consistent citizen demand for ring-fencing drug budgets at Sub-County Health Centre IVs.</li>
+            <li><strong>Transport Logistics:</strong> Widespread commercial endorsement of the Standard Gauge Railway (SGR).</li>
+            <li><strong>Debt Audit:</strong> Civil society consensus on auditing high-interest domestic debt charges.</li>
           </ul>
         </section>
 
@@ -298,7 +298,7 @@ export default function ExecutiveBriefView({
         <footer className="mt-8 pt-4 border-t-2 border-black text-xs avoid-break">
           <div>
             <p className="font-bold uppercase text-gray-900">Submitted by: THE MONETS</p>
-            <p className="text-[11px] text-gray-600">Department of Economics & Public Finance</p>
+            <p className="text-[11px] text-gray-600">The Monets</p>
           </div>
         </footer>
 

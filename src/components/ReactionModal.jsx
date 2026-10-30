@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Send, MessageSquarePlus, Sparkles, CheckCircle2 } from 'lucide-react';
+import { X, Send, MessageSquarePlus, CheckCircle2 } from 'lucide-react';
 import { REVENUE_STREAMS, EXPENDITURE_PROGRAMS } from '../data/budgetData';
 
 export default function ReactionModal({ 
@@ -55,7 +55,7 @@ export default function ReactionModal({
       setName('');
       setComment('');
       onClose();
-    }, 1200);
+    }, 1000);
   };
 
   return (
@@ -125,7 +125,7 @@ export default function ReactionModal({
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. David Okello"
+                  placeholder="Enter full name"
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-900"
                 />
               </div>
@@ -189,7 +189,7 @@ export default function ReactionModal({
             {/* Actions */}
             <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
               <span className="text-[10px] text-gray-500">
-                Permanently recorded in evidence ledger
+                Recorded in public consultation evidence
               </span>
 
               <div className="flex items-center space-x-2">
