@@ -6,6 +6,8 @@ import ExpenditureSection from './components/ExpenditureSection';
 import EvidenceSection from './components/EvidenceSection';
 import ReactionModal from './components/ReactionModal';
 import ExecutiveBriefView from './components/ExecutiveBriefView';
+import { db } from './firebase';
+import { collection, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { 
   Coins, 
   Wallet, 
@@ -39,7 +41,7 @@ export default function App() {
   // Admin access state (activated via secret click on Kyeyune Neithen in Members modal)
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Citizen Responses state (starts completely clean & empty, persists in LocalStorage)
+  // Citizen Responses state (starts clean or from LocalStorage cache)
   const [responses, setResponses] = useState(() => {
     try {
       const saved = localStorage.getItem('THE_MONETS_BUDGET_RESPONSES');
@@ -49,7 +51,56 @@ export default function App() {
     }
   });
 
-  // Save to localStorage whenever responses change
+  // Real-time synchronization with Firebase Firestore across phone & laptop
+  useEffect(() => {
+    let unsubscribe;
+    try {
+      const responsesCol = collection(db, 'responses');
+      unsubscribe = onSnapshot(responsesCol, (snapshot) => {
+        const firestoreList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        // Sort newest first
+        firestoreList.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+        
+        // If Firestore has responses, update state & localStorage
+        if (firestoreList.length > 0) {
+          setResponses(firestoreList);
+          try {
+            localStorage.setItem('THE_MONETS_BUDGET_RESPONSES', JSON.stringify(firestoreList));
+          } catch (e) {
+            console.error('Cache save error:', e);
+          }
+        } else {
+          // If Firestore is empty but we have local responses (e.g. submitted earlier on phone), sync them up
+          const cached = localStorage.getItem('THE_MONETS_BUDGET_RESPONSES');
+          if (cached) {
+            try {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                parsed.forEach(item => {
+                  setDoc(doc(db, 'responses', item.id), item).catch(() => {});
+                });
+              }
+            } catch (e) {
+              console.error('Sync error:', e);
+            }
+          }
+        }
+      }, (err) => {
+        console.warn('Firestore live listener notice (using local storage fallback):', err.message);
+      });
+    } catch (err) {
+      console.warn('Firestore init notice:', err);
+    }
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
+  // Save to localStorage whenever responses change as offline fail-safe
   useEffect(() => {
     try {
       localStorage.setItem('THE_MONETS_BUDGET_RESPONSES', JSON.stringify(responses));
@@ -72,12 +123,28 @@ export default function App() {
     setIsReactionModalOpen(true);
   };
 
-  const handleAddResponse = (newResponse) => {
-    setResponses((prev) => [newResponse, ...prev]);
+  const handleAddResponse = async (newResponse) => {
+    // 1. Instantly update local state for immediate UI feedback
+    setResponses((prev) => [newResponse, ...prev.filter(r => r.id !== newResponse.id)]);
+    
+    // 2. Persist to Firebase Firestore so phone and laptop both receive it in real-time
+    try {
+      await setDoc(doc(db, 'responses', newResponse.id), newResponse);
+    } catch (err) {
+      console.warn('Could not write to Firestore (saved locally in browser):', err.message);
+    }
   };
 
-  const handleDeleteResponse = (id) => {
+  const handleDeleteResponse = async (id) => {
+    // 1. Immediately remove from local state
     setResponses((prev) => prev.filter(r => r.id !== id));
+    
+    // 2. Delete from Firebase Firestore so it disappears on all devices
+    try {
+      await deleteDoc(doc(db, 'responses', id));
+    } catch (err) {
+      console.warn('Could not delete from Firestore:', err.message);
+    }
   };
 
   // Reactions count by target metric ID
